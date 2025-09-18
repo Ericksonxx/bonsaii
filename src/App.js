@@ -1,8 +1,6 @@
 import React from "react";
 import logo from'./img/logo-min.png';
 
-function Stat({ label, value }) {
-
   async function onSubmit(e) {
   e.preventDefault();
   const form = new FormData(e.currentTarget);
@@ -28,6 +26,8 @@ function Stat({ label, value }) {
   }
 }
 
+
+function Stat({ label, value }) {
   return (
     <div className="rounded-2xl border p-4">
       <p className="text-xs text-neutral-500">{label}</p>

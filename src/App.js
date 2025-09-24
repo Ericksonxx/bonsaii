@@ -3,6 +3,10 @@ import { motion } from "framer-motion";
 import { Check, Globe, Shield, Zap, Hammer, Settings, ArrowRight, Mail, Phone, Stars } from "lucide-react";
 import logo from './img/logo-min.png'
 
+import beanz from './img/cafe.png'
+import lex from './img/lex.png'
+import burger from './img/burger.png'
+
 // --- Lightweight UI Primitives (Tailwind) ---
 const Button = ({ asChild, children, variant = "solid", size = "md", className = "", ...props }) => {
   const sizes = { sm: "px-3 py-1.5 text-sm", md: "px-4 py-2", lg: "px-5 py-2.5 text-base" };
@@ -172,9 +176,9 @@ const copy = {
       title: "Starter demos",
       subtitle: "Show your style before the first client—ship beautiful demos.",
       examples: [
-        { name: "SaaS Landing", tag: "Demo", note: "Next/React + MDX" },
-        { name: "Consulting Site", tag: "Demo", note: "Blog + CMS" },
-        { name: "Local Business", tag: "Demo", note: "Lead forms" },
+        { name: "Smash Burger", tag: "Restaurant", image: burger},
+        { name: "Lex Lawyers", tag: "Lawyer", image: lex },
+        { name: "Beanz Coffee", tag: "E-commerce", image: beanz },
       ],
     },
     faq: {
@@ -292,9 +296,9 @@ const copy = {
       title: "Demos iniciales",
       subtitle: "Muestra tu estilo antes del primer cliente—lanza demos cuidadas.",
       examples: [
-        { name: "SaaS Landing", tag: "Demo", note: "Next/React + MDX" },
-        { name: "Consultoría", tag: "Demo", note: "Blog + CMS" },
-        { name: "Negocio local", tag: "Demo", note: "Formularios de lead" },
+        { name: "Smash Burger", tag: "Restaurante", image: burger},
+        { name: "Lex Abogados", tag: "Abogados", image: lex },
+        { name: "Beanz Coffee", tag: "E-commerce", image: beanz },
       ],
     },
     faq: {
@@ -498,7 +502,9 @@ export default function App() {
           <div className="grid md:grid-cols-3 gap-6">
             {t.work.examples.map((ex, i) => (
               <Card key={i} className="overflow-hidden group">
-                <div className="aspect-[16/10] bg-muted grid place-items-center text-muted-foreground text-sm">{ex.name}</div>
+                <div className="aspect-[16/10] bg-muted grid place-items-center text-muted-foreground text-sm">
+                  <img src={ex.image} />
+                </div>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{ex.name}</CardTitle>
@@ -507,11 +513,6 @@ export default function App() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">{ex.note}</p>
-                  <Button variant="ghost" className="mt-2 px-0" asChild>
-                    <a href="#" onClick={(e)=> e.preventDefault()}>
-                      {lang === "en" ? "Preview soon" : "Vista previa pronto"} <ArrowRight className="h-4 w-4 ml-2" />
-                    </a>
-                  </Button>
                 </CardContent>
               </Card>
             ))}

@@ -173,8 +173,8 @@ const copy = {
       ],
     },
     work: {
-      title: "Starter demos",
-      subtitle: "Show your style before the first client—ship beautiful demos.",
+      title: "Projects",
+      subtitle: "Different clients, different outcomes.",
       examples: [
         { name: "Smash Burger", tag: "Restaurant", image: burger},
         { name: "Lex Lawyers", tag: "Lawyer", image: lex },
@@ -293,8 +293,8 @@ const copy = {
       ],
     },
     work: {
-      title: "Demos iniciales",
-      subtitle: "Muestra tu estilo antes del primer cliente—lanza demos cuidadas.",
+      title: "Proyectos",
+      subtitle: "Distintos trabajos realizados.",
       examples: [
         { name: "Smash Burger", tag: "Restaurante", image: burger},
         { name: "Lex Abogados", tag: "Abogados", image: lex },

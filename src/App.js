@@ -1,65 +1,99 @@
 import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Globe, Shield, Zap, Hammer, Settings, ArrowRight, Mail, Phone, Stars } from "lucide-react";
-import logo from './img/logo-min.png'
+import { Check, Globe, Shield, Zap, Hammer, Settings, Mail, Phone, Stars } from "lucide-react";
+import logo from './img/green.png'
 
 import beanz from './img/cafe.png'
 import lex from './img/lex.png'
 import burger from './img/burger.png'
 
-// --- Lightweight UI Primitives (Tailwind) ---
+// === THEME ===
+// Primary accent as requested: #3fa047
+const ACCENT = "#3fa047";          // base green
+const ACCENT_DARK = "#2b7a37";     // for hover/contrast
+const ACCENT_LIGHT = "#e9f6ec";    // soft bg tints
+
+// Utility to merge class names
+const cx = (...classes) => classes.filter(Boolean).join(" ");
+
+// --- Lightweight UI Primitives (Tailwind + CSS vars) ---
+// NOTE: Tailwind can't see dynamic strings like bg-[${ACCENT}].
+// We use CSS vars + inline style so the green always renders.
 const Button = ({ asChild, children, variant = "solid", size = "md", className = "", ...props }) => {
   const sizes = { sm: "px-3 py-1.5 text-sm", md: "px-4 py-2", lg: "px-5 py-2.5 text-base" };
-  const variants = {
-    solid: "bg-black text-white hover:bg-black/90",
-    outline: "border border-gray-300 hover:bg-gray-50",
-    ghost: "hover:bg-gray-100",
+  const base = `inline-flex items-center justify-center cursor-pointer select-none rounded-xl transition font-medium shadow-sm active:translate-y-[1px]`;
+
+  const styles = (variant) => {
+    if (variant === "solid") {
+      return {
+        backgroundImage: `linear-gradient(180deg, ${ACCENT} 0%, ${ACCENT_DARK} 100%)`,
+        color: "white",
+      };
+    }
+    if (variant === "outline") {
+      return {
+        borderColor: ACCENT,
+        color: ACCENT_DARK,
+        borderWidth: 1,
+        background: "transparent",
+      };
+    }
+    // ghost
+    return { color: ACCENT_DARK, background: "transparent" };
   };
-  const base = "inline-flex items-center justify-center cursor-pointer select-none rounded-xl transition";
-  const cn = `${base} ${sizes[size]} ${variants[variant]} ${className}`;
+
+  const classes = cx(base, sizes[size], variant === "solid" ? "hover:opacity-95" : "hover:bg-black/5", className);
 
   if (asChild && React.isValidElement(children)) {
     return React.cloneElement(children, {
-      ...props, // <-- reenvía onClick, href, etc.
-      className: `${children.props.className ?? ""} ${cn}`.trim(),
+      ...props,
+      className: cx(children.props.className ?? "", classes),
+      style: { ...(children.props.style || {}), ...styles(variant) }
     });
   }
-  return <button className={cn} {...props}>{children}</button>;
+  return (
+    <button className={classes} style={styles(variant)} {...props}>
+      {children}
+    </button>
+  );
 };
 
-
 const Card = ({ children, className = "" }) => (
-  <div className={`rounded-2xl border border-gray-200 bg-white shadow-sm ${className}`}>{children}</div>
+  <div className={cx(`rounded-2xl border bg-white shadow-sm transition hover:shadow-md`, className)}>{children}</div>
 );
 const CardHeader = ({ children, className = "" }) => (
-  <div className={`p-5 border-b border-gray-100 ${className}`}>{children}</div>
+  <div className={cx(`p-5 border-b border-gray-100`, className)}>{children}</div>
 );
 const CardTitle = ({ children, className = "" }) => (
-  <h3 className={`font-semibold tracking-tight ${className}`}>{children}</h3>
+  <h3 className={cx(`font-semibold tracking-tight`, className)}>{children}</h3>
 );
 const CardContent = ({ children, className = "" }) => (
-  <div className={`p-5 ${className}`}>{children}</div>
+  <div className={cx(`p-5`, className)}>{children}</div>
 );
 const Badge = ({ children, variant = "solid", className = "" }) => (
-  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${variant === "outline" ? "border border-gray-300 text-gray-700" : "bg-gray-900 text-white"} ${className}`}>{children}</span>
+  <span
+    className={cx(`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium`, variant === "outline" ? `border text-gray-700` : `text-white`, className)}
+    style={variant === "outline" ? { borderColor: ACCENT } : { background: ACCENT }}
+  >{children}</span>
 );
 
 // --- Segmented Toggle (animado) ---
 function Segmented({ options, value, onChange, layoutId = "seg-pill" }) {
   return (
-    <div className="relative inline-flex bg-gray-100 rounded-full p-1">
+    <div className="relative inline-flex rounded-full p-1 bg-black/5">
       {options.map(opt => {
         const active = value === opt.value;
         return (
           <button
             key={opt.value}
             onClick={() => onChange(opt.value)}
-            className={`relative px-3 py-1 text-xs font-medium rounded-full transition-colors ${active ? "text-white" : "text-gray-700 hover:text-black"}`}
+            className={cx(`relative px-3 py-1 text-xs font-medium rounded-full transition-colors`, active ? `text-white` : `text-gray-700 hover:text-black`)}
           >
             {active && (
               <motion.span
                 layoutId={layoutId}
-                className="absolute inset-0 rounded-full bg-black"
+                className={`absolute inset-0 rounded-full`}
+                style={{ background: ACCENT }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             )}
@@ -318,12 +352,13 @@ function SectionHeading({ eyebrow, title, subtitle }) {
   return (
     <div className="max-w-3xl mx-auto text-center mb-10">
       {eyebrow && (
-        <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs tracking-wide uppercase">
+        <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs tracking-wide uppercase"
+             style={{ border: `1px solid ${ACCENT}`, color: ACCENT }}>
           <Stars className="h-3.5 w-3.5" /> {eyebrow}
         </div>
       )}
       <h2 className="mt-4 text-3xl md:text-4xl font-semibold tracking-tight">{title}</h2>
-      {subtitle && <p className="mt-4 text-muted-foreground text-lg">{subtitle}</p>}
+      {subtitle && <p className="mt-4 text-zinc-600 text-lg">{subtitle}</p>}
     </div>
   );
 }
@@ -333,29 +368,42 @@ function formatMoney(currency, amount) {
   return `${symbol}${amount.toLocaleString("en-GB", { maximumFractionDigits: 0 })}`;
 }
 
+// Reveal-on-scroll wrapper for subtle dynamism
+const Reveal = ({ children, y = 12, delay = 0 }) => (
+  <motion.div initial={{ opacity: 0, y }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-20%" }} transition={{ duration: 0.5, delay }}>
+    {children}
+  </motion.div>
+);
+
 export default function App() {
   const [lang, setLang] = useState("en");
   const [currency, setCurrency] = useState("EUR"); // EUR | GBP
   const t = useMemo(() => copy[lang], [lang]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-white text-black">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 backdrop-blur bg-background/70 border-b">
+      <header className="sticky top-0 z-40 backdrop-blur bg-white/70 border-b">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div><img className="h-8" src={logo} alt="Logo" /></div>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <a href="#features" className="hover:opacity-70">{t.nav.features}</a>
-            <a href="#pricing" className="hover:opacity-70">{t.nav.pricing}</a>
-            <a href="#process" className="hover:opacity-70">{t.nav.process}</a>
-            <a href="#work" className="hover:opacity-70">{t.nav.work}</a>
-            <a href="#faq" className="hover:opacity-70">{t.nav.faq}</a>
-            <a href="#contact" className="hover:opacity-70">{t.nav.contact}</a>
+            {[
+              { href: '#features', label: t.nav.features },
+              { href: '#pricing', label: t.nav.pricing },
+              { href: '#process', label: t.nav.process },
+              { href: '#work', label: t.nav.work },
+              { href: '#faq', label: t.nav.faq },
+              { href: '#contact', label: t.nav.contact },
+            ].map((l) => (
+              <a key={l.href} href={l.href} className="group relative">
+                <span className="hover:opacity-80">{l.label}</span>
+
+              </a>
+            ))}
           </nav>
           <div className="flex items-center gap-3">
-            {/* Language toggle */}
             <Segmented
               options={[{ label: "EN", value: "en" }, { label: "ES", value: "es" }]}
               value={lang}
@@ -371,52 +419,67 @@ export default function App() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-primary/5 to-transparent" />
+        {/* Floating tinted shapes */}
+        <motion.div
+          className="absolute -top-24 -left-16 w-80 h-80 rounded-full blur-3xl opacity-40"
+          style={{ background: ACCENT_LIGHT }}
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 6, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute top-10 right-[-60px] w-96 h-96 rounded-full blur-3xl opacity-40"
+          style={{ background: ACCENT_LIGHT }}
+          animate={{ y: [0, 12, 0] }}
+          transition={{ duration: 7, repeat: Infinity }}
+        />
+
         <div className="max-w-6xl mx-auto px-4 py-20">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center">
-            <Badge className="gap-2 px-3 py-1 text-xs" variant="outline">
-              <Globe className="h-3.5 w-3.5" /> {t.hero.badge}
-            </Badge>
-            <h1 className="mt-6 text-4xl md:text-6xl font-semibold tracking-tight">{t.hero.title}</h1>
-            <p className="mt-6 text-lg text-muted-foreground max-w-3xl mx-auto">{t.hero.subtitle}</p>
-            <div className="mt-8 flex items-center justify-center gap-3">
-<Button size="lg" asChild>
-  <a href="#contact">{t.hero.ctaPrimary}</a>
-</Button>
-
-<Button size="lg" variant="outline" asChild>
-  <a href="#pricing">{t.hero.ctaSecondary}</a>
-</Button>
-
-
-
-
+          <Reveal>
+            <div className="text-center">
+              <Badge className="gap-2 px-3 py-1 text-xs" variant="outline">
+                <Globe className="h-3.5 w-3.5" /> {t.hero.badge}
+              </Badge>
+              <h1 className="mt-6 text-4xl md:text-6xl font-semibold tracking-tight">{t.hero.title}</h1>
+              <p className="mt-6 text-lg text-zinc-600 max-w-3xl mx-auto">{t.hero.subtitle}</p>
+              <div className="mt-8 flex items-center justify-center gap-3">
+                <Button size="lg" asChild>
+                  <a href="#contact">{t.hero.ctaPrimary}</a>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <a href="#pricing">{t.hero.ctaSecondary}</a>
+                </Button>
+              </div>
+              <p className="mt-6 text-sm text-zinc-600">{t.hero.trust}</p>
             </div>
-            <p className="mt-6 text-sm text-muted-foreground">{t.hero.trust}</p>
-          </motion.div>
+          </Reveal>
         </div>
+
+        {/* Section divider */}
+        <div className="h-[1px] w-full" style={{ background: `linear-gradient(90deg, transparent, ${ACCENT_LIGHT}, transparent)` }} />
       </section>
 
       {/* Features */}
-      <section id="features" className="py-16 border-t">
+      <section id="features" className="py-16">
         <div className="max-w-6xl mx-auto px-4">
           <SectionHeading title={t.features.title} />
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {t.features.items.map((f, i) => (
-              <Card key={i} className="h-full">
-                <CardHeader>
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 grid place-items-center mb-3">{f.icon}</div>
-                  <CardTitle className="text-lg">{f.title}</CardTitle>
-                </CardHeader>
-                <CardContent><p className="text-sm text-muted-foreground">{f.desc}</p></CardContent>
-              </Card>
+              <Reveal key={i} delay={i * 0.05}>
+                <Card className="h-full">
+                  <CardHeader>
+                    <div className="h-10 w-10 rounded-xl grid place-items-center mb-3 text-white" style={{ background: ACCENT }}>{f.icon}</div>
+                    <CardTitle className="text-lg">{f.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent><p className="text-sm text-zinc-600">{f.desc}</p></CardContent>
+                </Card>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-16 border-t">
+      <section id="pricing" className="py-16">
         <div className="max-w-6xl mx-auto px-4">
           <SectionHeading title={t.pricing.title} subtitle={t.pricing.subtitle} />
 
@@ -442,35 +505,41 @@ export default function App() {
                     const setupText = `${formatMoney(currency, setup)} ${setup === 0 ? (lang === "en" ? "setup (launch)" : "de setup (lanzamiento)") : (lang === "en" ? "one-time" : "único")}`;
                     const monthlyText = `${formatMoney(currency, monthly)} / ${lang === "en" ? "mo" : "mes"}${p.term ? ` (${p.term})` : ""}`;
 
+                    const highlightStyles = p.highlight
+                      ? { borderColor: ACCENT, boxShadow: `0 6px 24px rgba(63, 160, 71, 0.18)` }
+                      : {};
+
                     return (
-                      <Card key={i} className={`${p.highlight ? "border-primary shadow-lg" : ""}`}>
-                        <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <CardTitle className="text-2xl">{p.name}</CardTitle>
-                              <p className="text-sm text-muted-foreground mt-1">{p.tagline}</p>
+                      <Reveal key={i} delay={i * 0.05}>
+                        <Card className="h-full" style={highlightStyles}>
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <CardTitle className="text-2xl">{p.name}</CardTitle>
+                                <p className="text-sm text-zinc-600 mt-1">{p.tagline}</p>
+                              </div>
+                              {p.highlight && <Badge> {lang === "en" ? "Recommended" : "Recomendado"} </Badge>}
                             </div>
-                            {p.highlight && <Badge>{lang === "en" ? "Recommended" : "Recomendado"}</Badge>}
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-1">
-                            <p className="text-sm">{setupText}</p>
-                            <p className="text-sm text-muted-foreground">{monthlyText}</p>
-                          </div>
-                          <ul className="mt-4 space-y-2">
-                            {p.includes.map((it, j) => (
-                              <li key={j} className="flex items-start gap-2 text-sm">
-                                <Check className="h-4 w-4 mt-0.5" /> {it}
-                              </li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-1">
+                              <p className="text-sm">{setupText}</p>
+                              <p className="text-sm text-zinc-600">{monthlyText}</p>
+                            </div>
+                            <ul className="mt-4 space-y-2">
+                              {p.includes.map((it, j) => (
+                                <li key={j} className="flex items-start gap-2 text-sm">
+                                  <Check className="h-4 w-4 mt-0.5" style={{ color: ACCENT }} /> {it}
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      </Reveal>
                     );
                   })}
                 </div>
-                <p className="text-xs text-muted-foreground mt-4">{group.footnote}</p>
+                <p className="text-xs text-zinc-500 mt-4">{group.footnote}</p>
               </div>
             ))}
           </div>
@@ -478,124 +547,132 @@ export default function App() {
       </section>
 
       {/* Process */}
-      <section id="process" className="py-16 border-t">
+      <section id="process" className="py-16">
         <div className="max-w-6xl mx-auto px-4">
           <SectionHeading title={t.process.title} />
-          <ol className="grid md:grid-cols-4 gap-6 counter-reset">
+          <ol className="grid md:grid-cols-4 gap-6">
             {t.process.steps.map((s, i) => (
-              <li key={i} className="relative rounded-2xl border p-5 bg-card">
-                <div className="absolute -top-3 -left-3 h-8 w-8 rounded-full bg-primary text-primary-foreground grid place-items-center font-semibold">
-                  {i + 1}
-                </div>
-                <h3 className="font-medium">{s.title}</h3>
-                <p className="text-sm text-muted-foreground mt-1">{s.desc}</p>
-              </li>
+              <Reveal key={i} delay={i * 0.03}>
+                <li className="relative rounded-2xl border p-5 bg-white">
+                  <div className="absolute -top-3 -left-3 h-8 w-8 rounded-full grid place-items-center font-semibold text-white" style={{ background: ACCENT }}>
+                    {i + 1}
+                  </div>
+                  <h3 className="font-medium">{s.title}</h3>
+                  <p className="text-sm text-zinc-600 mt-1">{s.desc}</p>
+                </li>
+              </Reveal>
             ))}
           </ol>
         </div>
       </section>
 
       {/* Work */}
-      <section id="work" className="py-16 border-t">
+      <section id="work" className="py-16">
         <div className="max-w-6xl mx-auto px-4">
           <SectionHeading title={t.work.title} subtitle={t.work.subtitle} />
           <div className="grid md:grid-cols-3 gap-6">
             {t.work.examples.map((ex, i) => (
-              <Card key={i} className="overflow-hidden group">
-                <div className="aspect-[16/10] bg-muted grid place-items-center text-muted-foreground text-sm">
-                  <img src={ex.image} />
-                </div>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{ex.name}</CardTitle>
-                    <Badge variant="outline">{ex.tag}</Badge>
+              <Reveal key={i}>
+                <Card className="overflow-hidden group">
+                  <div className="aspect-[16/10] bg-zinc-100 grid place-items-center text-zinc-500 text-sm">
+                    <img alt="Project" className="object-cover h-full w-full" src={ex.image} />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{ex.note}</p>
-                </CardContent>
-              </Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{ex.name}</CardTitle>
+                      <Badge variant="outline">{ex.tag}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-zinc-600">{ex.note}</p>
+                  </CardContent>
+                </Card>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-16 border-t">
+      <section id="faq" className="py-16">
         <div className="max-w-6xl mx-auto px-4">
           <SectionHeading title={t.faq.title} />
           <div className="grid md:grid-cols-3 gap-6">
             {t.faq.items.map((f, i) => (
-              <Card key={i}>
-                <CardHeader><CardTitle className="text-base">{f.q}</CardTitle></CardHeader>
-                <CardContent><p className="text-sm text-muted-foreground">{f.a}</p></CardContent>
-              </Card>
+              <Reveal key={i}>
+                <Card>
+                  <CardHeader><CardTitle className="text-base">{f.q}</CardTitle></CardHeader>
+                  <CardContent><p className="text-sm text-zinc-600">{f.a}</p></CardContent>
+                </Card>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA / Contact */}
-      <section id="contact" className="py-16 border-t border-zinc-200">
+      <section id="contact" className="py-16">
         <div className="max-w-4xl mx-auto px-4">
-          <Card className="relative overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(600px_200px_at_100%_0%,rgba(0,0,0,0.06),transparent_70%)]" />
-            <CardHeader className="relative z-10">
-              <CardTitle className="text-2xl">{t.cta.title}</CardTitle>
-              <p className="text-zinc-600 mt-2">{t.cta.subtitle}</p>
-            </CardHeader>
-            <CardContent className="relative z-10">
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Left: phone & email */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-zinc-900" />
-                    <a href="tel:+34609552327" className="text-lg md:text-xl font-medium hover:underline" aria-label={lang === "en" ? "Call us" : "Llámanos"}>
-                      +34 609 552 327
-                    </a>
+          <Reveal>
+            <Card className="relative overflow-hidden">
+              <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(600px 200px at 100% 0%, rgba(63,160,71,0.08), transparent 70%)` }} />
+              <CardHeader className="relative z-10">
+                <CardTitle className="text-2xl">{t.cta.title}</CardTitle>
+                <p className="text-zinc-600 mt-2">{t.cta.subtitle}</p>
+              </CardHeader>
+              <CardContent className="relative z-10">
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Left: phone & email */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Phone className="h-5 w-5" style={{ color: ACCENT }} />
+                      <a href="tel:+34609552327" className="text-lg md:text-xl font-medium hover:underline" aria-label={lang === "en" ? "Call us" : "Llámanos"}>
+                        +34 609 552 327
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-5 w-5" style={{ color: ACCENT }} />
+                      <a href="mailto:info@bonsaiistudio.com" className="text-lg md:text-xl font-medium hover:underline break-all" aria-label={lang === "en" ? "Email us" : "Escríbenos"}>
+                        info@bonsaiistudio.com
+                      </a>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-5 w-5 text-zinc-900" />
-                    <a href="mailto:info@bonsaiistudio.com" className="text-lg md:text-xl font-medium hover:underline break-all" aria-label={lang === "en" ? "Email us" : "Escríbenos"}>
-                      info@bonsaiistudio.com
-                    </a>
+
+                  {/* Right: actions */}
+                  <div className="flex flex-col sm:flex-row md:flex-col gap-3">
+                    <Button size="lg" asChild>
+                      <a
+                        href="mailto:info@bonsaiistudio.com?subject=Bonsaii%20Studio%20—%20Project%20Inquiry"
+                        aria-label={lang === "en" ? "Send an email" : "Enviar un correo"}
+                        target="_blank"
+                      >
+                        <Mail className="h-4 w-4 mr-2 inline" />
+                        {lang === "en" ? "Send an email" : "Enviar correo"}
+                      </a>
+                    </Button>
+
+                    <Button size="lg" variant="outline" asChild>
+                      <a href="tel:+34609552327" aria-label={lang === "en" ? "Call by phone" : "Llamar por teléfono"}>
+                        <Phone className="h-4 w-4 mr-2 inline" />
+                        {lang === "en" ? "Call by phone" : "Llamar por teléfono"}
+                      </a>
+                    </Button>
                   </div>
                 </div>
 
-                {/* Right: actions */}
-                <div className="flex flex-col sm:flex-row md:flex-col gap-3">
-                  <Button size="lg" asChild>
-                    <a
-                      href="mailto:info@bonsaiistudio.com?subject=Bonsaii%20Studio%20—%20Project%20Inquiry"
-                      aria-label={lang === "en" ? "Send an email" : "Enviar un correo"}
-                      target="_blank"
-                    >
-                      <Mail className="h-4 w-4 mr-2 inline" />
-                      {lang === "en" ? "Send an email" : "Enviar correo"}
-                    </a>
-                  </Button>
-
-                  <Button size="lg" variant="ghost" asChild>
-                    <a href="tel:+34609552327" aria-label={lang === "en" ? "Call by phone" : "Llamar por teléfono"}>
-                      <Phone className="h-4 w-4 mr-2 inline" />
-                      {lang === "en" ? "Call by phone" : "Llamar por teléfono"}
-                    </a>
-                  </Button>
-                </div>
-              </div>
-
-              <p className="text-xs text-zinc-500 mt-6">
-                {lang === "en" ? "Prefer WhatsApp? Add the phone above and say hi." : "¿Prefieres WhatsApp? Guarda el número y salúdanos."}
-              </p>
-            </CardContent>
-          </Card>
+                <p className="text-xs text-zinc-500 mt-6">
+                  {lang === "en" ? "Prefer WhatsApp? Add the phone above and say hi." : "¿Prefieres WhatsApp? Guarda el número y salúdanos."}
+                </p>
+              </CardContent>
+            </Card>
+          </Reveal>
         </div>
       </section>
 
       <footer className="py-10 border-t">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Bonsaii Studio. {t.footer.rights}</p>
-          <div className="text-xs text-muted-foreground">
+          <p className="text-sm text-zinc-600">© {new Date().getFullYear()} Bonsaii Studio. {t.footer.rights}</p>
+          <div className="text-xs text-zinc-600">
             {lang === "en" ? (
               <span>Deployed on Vercel • Built with React • Cookies only if needed</span>
             ) : (
